@@ -1,17 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorkSphere - Gestion du Personnel</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
         <h1>WORKING-SPHERE</h1>
     </header>
-       <div class="bigcontain">
-        <!-- Sidebar -->
+
+    <div class="bigcontain">
         <div class="side" id="side">
             <button type="button" id="validation" class="validation">AJOUTER UN PERSONNEL</button>
             <hr>
@@ -23,51 +24,40 @@
             </div>
         </div>
 
-        <!-- Floor Plan Container -->
         <div class="container" id="container">
-           
-            <!-- Conference Room -->
             <div class="conference">
                 <h1>SALLE DE CONFERENCE</h1>
                 <button type="button" class="plusbtn" data-zone="conference">+</button>
                 <div class="conferencelist" id="conferencelist"></div>
             </div>
 
-            <!-- Vertical Wall -->
             <div class="vertcolouar"></div>
-
-            <!-- Horizontal Wall -->
             <div class="horizcolouar"></div>
 
-            <!-- Reception -->
             <div class="reception">
                 <h1>SALLE DE RECEPTION</h1>
                 <button type="button" class="plusbtn" data-zone="reception">+</button>
                 <div class="receptionlist" id="receptionlist"></div>
             </div>
 
-            <!-- Server Room -->
             <div class="serveurs">
                 <h1>SALLE DES SERVEURS</h1>
                 <button type="button" class="plusbtn" data-zone="serveurs">+</button>
                 <div class="serveurslist" id="serveurslist"></div>
             </div>
 
-            <!-- Security Room -->
             <div class="securite" id="securite">
                 <h1>SALLE DE SECURITE</h1>
                 <button type="button" class="plusbtn" data-zone="securite">+</button>
                 <div class="securitelist" id="securitelist"></div>
             </div>
 
-            <!-- Staff Room -->
             <div class="personnel" id="personnel">
                 <h1>SALLE DES PERSONNEL</h1>
                 <button type="button" class="plusbtn" data-zone="personnel">+</button>
                 <div class="persnnallist" id="persnnallist"></div>
             </div>
 
-            <!-- Archives Room -->
             <div class="archives">
                 <h1>SALLE D'ARCHIVES</h1>
                 <button type="button" class="plusbtn" data-zone="archives">+</button>
@@ -75,6 +65,75 @@
             </div>
         </div>
     </div>
-<script src="script.js"></script>
+
+    <div class="validationForm" id="validationForm">
+        <div class="btncancel">
+            <h1>Ajouter un Employé</h1>
+            <button type="button" id="closeModal">×</button>
+        </div>
+
+        <form class="fromremplit" id="addWorkerForm">
+            <div class="input-group1">
+                <img src="" alt="Profile" class="profileimg" id="profileimg">
+                <div style="flex: 1;">
+                    <label for="workerName">Nom et Prénom</label>
+                    <input type="text" id="workerName" placeholder="AMINE LEBRINI" required>
+                </div>
+            </div>
+
+            <label for="workerPhoto">Photo (URL)</label>
+            <input type="url" id="workerPhoto" placeholder="https://avatars.githubusercontent.com/u/113290995?v=4">
+
+            <div class="input-group2">
+                <label for="workerRole">Rôle</label>
+                <select id="workerRole" required>
+                    <option value="">Sélectionner un rôle</option>
+                    <option value="Réceptionniste">Réceptionniste</option>
+                    <option value="Technicien IT">Technicien IT</option>
+                    <option value="Agent de sécurité">Agent de sécurité</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Nettoyage">Nettoyage</option>
+                    <option value="FS Developer">FS Developer</option>
+                    <option value="Comptable">Comptable</option>
+                    <option value="RH">Ressources Humaines</option>
+                    <option value="Commercial">Commercial</option>
+                </select>
+            </div>
+
+            <label for="workerEmail">Email</label>
+            <input type="email" id="workerEmail" placeholder="aminelebrini4@gmail.com" required>
+
+            <label for="workerPhone">Téléphone</label>
+            <input type="tel" id="workerPhone" placeholder="648498464599" required>
+
+            <div class="experiences-section">
+                <div class="experiences-header">
+                    <h3>Expériences</h3>
+                    <button type="button" class="add-experience-btn" id="addExperienceBtn">+ Ajouter</button>
+                </div>
+                <div id="experiencesList"></div>
+            </div>
+
+            <button type="submit">Envoyer</button>
+        </form>
+    </div>
+
+    <div class="profile-modal" id="profileModal">
+        <div class="btncancel">
+            <h1>Profil Employé</h1>
+            <button type="button" id="closeProfileModal">×</button>
+        </div>
+        <div class="profile-header" id="profileContent"></div>
+    </div>
+
+    <div class="validationForm" id="zoneSelectorModal">
+        <div class="btncancel">
+            <h1 id="zoneSelectorTitle">Sélectionner un employé</h1>
+            <button type="button" id="closeZoneSelector">×</button>
+        </div>
+        <div id="zoneSelectorList" style="width: 100%; max-height: 400px; overflow-y: auto;"></div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
