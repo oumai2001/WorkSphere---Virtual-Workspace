@@ -72,6 +72,23 @@ function initializeEventListeners() {
     });
 }
 
+// Gestion du stockage localStorage
+function saveToStorage() {
+    localStorage.setItem('workSphereData', JSON.stringify({
+        workers: workers,
+        nextWorkerId: nextWorkerId
+    }));
+}
+
+function loadFromStorage() {
+    const saved = localStorage.getItem('workSphereData');
+    if (saved) {
+        const data = JSON.parse(saved);
+        workers = data.workers || [];
+        nextWorkerId = data.nextWorkerId || 1;
+    }
+}
+
 // Modale d'ajout
 function openAddModal() {
     document.getElementById('validationForm').classList.add('active');
