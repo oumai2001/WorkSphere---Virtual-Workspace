@@ -1,154 +1,160 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorkSphere - Gestion du Personnel</title>
-    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        .WorkSpace{
+          display: grid;
+          grid-template-columns: 1.68fr 0.72fr 1fr 1fr;
+          grid-template-rows: 34% 31% 34%;
+          grid-template-areas:
+             "conference . servers security"
+             "Réception . . . "
+             "Réception . personnel archive";
+          gap: 2px;
+        }
+    </style>
 </head>
-
-<body>
-    <header>
-        <h1>WORKING-SPHERE</h1>
-    </header>
-    <div class="modal-overlay" id="modalOverlay"></div>
-
-    <div class="bigcontain">
-        <!-- Sidebar Unassigned Personnel -->
-        <div class="side" id="side">
-            <button type="button" id="validation" class="validation">AJOUTER UN PERSONNEL</button>
-            <hr>
-            <div class="persolist" id="persolist">
-                <div class="empty-state">
-                    <div class="empty-state-icon">👤</div>
-                    <p>Aucun personnel non assigné</p>
+<body class="w-full h-screen flex bg-orange-100 p-4 gap-4 ">
+    <aside class="sidebar  h-full bg-white shadow-md p-2 rounded-2xl flex flex-col items-center gap-2 md:gap-4 md:p-4 w-1/4">
+      <h1 class="text-black font-bold text-sm md:text-3xl"><i class="fas fa-users"></i> WorkSphere</h1 >
+      <button id="add-worker-btn" class="text-xs  bg-green-400 w-full p-1 rounded cursor-pointer transition-all Duration-500 hover:scale-95 md:p-2 md:text-lg"><i class="text-xs fas fa-plus"></i> Add New Worker</button>
+      <input id="Search" type="text" class="search-box text-xs bg-gray-200 w-full p-1 rounded cursor-pointer transition-all Duration-500 md:p-2 md:text-lg" placeholder="Rechercher un employé..." id="search">
+      <select name="filter" id="filterRole" class="search-box text-xs bg-gray-200 w-full p-1 rounded cursor-pointer transition-all Duration-500 md:p-2 md:text-lg">
+        <option value="">All The Roles</option>
+        <option value="Manager">Manager</option>
+        <option value="Réceptionnistes">Réceptionnistes</option>
+        <option value="Techniciens IT">Techniciens IT</option>
+        <option value="Agents de sécurité">Agents de sécurité</option>
+        <option value="Nettoyage">Nettoyage</option>
+        <option value="Autres rôles">Autres rôles</option>
+      </select>
+      <h3 class="text-black font-bold text-xs md:text-lg">Unassigned Staff (<span id="unassigned-count">0</span>)</h3>
+      <div class="unassigned-list w-full h-full flex flex-col gap-2 overflow-y-auto" id="unassigned-list"></div>
+   </aside>
+   <main class="relative w-full h-full shadow-md rounded">
+    <img src="img/background.jpg" alt="WorkSpace" class="absolute top-0 left-0 -z-50 w-full h-full">
+    <div class="WorkSpace w-full h-full" id="WorkSpace">
+        <div class="relative [grid-area:conference]">
+            <div class="room flex flex-wrap justify-center items-center gap-1 p-3 w-full h-full empty:bg-green-300 empty:opacity-50"></div>
+            <button class="add-room-btn absolute left-1/2 top-[85%] -translate-1/2 bg-blue-600 md:w-6 md:h-6 w-4 h-4 text-sm flex justify-center items-center transition-all Duration-500 rounded-3xl text-white md:text-lg cursor-pointer hover:scale-105" room-name="conference">+</button>
+            <h3 class="absolute top-2 left-1/2 -translate-x-1/2  text-black  font-bold text-xs md:text-lg">conference</h3>
+        </div>
+        <div class="relative [grid-area:servers]">
+            <div class="room flex flex-wrap justify-center items-center gap-1 p-3 w-full h-full empty:bg-red-400 empty:opacity-50"></div>
+            <button class="add-room-btn absolute left-1/2 top-[85%] -translate-1/2 bg-blue-600 md:w-6 md:h-6 w-4 h-4 text-sm flex justify-center items-center transition-all Duration-500 rounded-3xl text-white md:text-lg cursor-pointer hover:scale-105" room-name="servers">+</button>
+            <h3 class="absolute top-2 left-1/2 -translate-x-1/2 text-black font-bold text-xs md:text-lg">servers</h3>
+       </div>
+        <div class="relative [grid-area:security]">
+            <div class="room flex flex-wrap justify-center items-center gap-1 p-3 w-full h-full empty:bg-red-400 empty:opacity-50"></div>
+            <button class="add-room-btn absolute left-1/2 top-[85%] -translate-1/2 bg-blue-600 md:w-6 md:h-6 w-4 h-4 text-sm flex justify-center items-center transition-all Duration-500 rounded-3xl text-white md:text-lg cursor-pointer hover:scale-105" room-name="security">+</button>
+            <h3 class="absolute top-2 left-1/2 -translate-x-1/2 text-black font-bold text-xs md:text-lg">security</h3>
+        </div>
+        <div class="relative [grid-area:Réception]">
+            <div class="room flex flex-wrap justify-center items-center gap-1 p-3 w-full h-full empty:bg-red-400 empty:opacity-50"></div>
+            <button class="add-room-btn absolute left-1/2 top-[85%] -translate-1/2 bg-blue-600 md:w-6 md:h-6 w-4 h-4 text-sm flex justify-center items-center transition-all Duration-500 rounded-3xl text-white md:text-lg cursor-pointer hover:scale-105" room-name="Réception">+</button>
+            <h3 class="absolute top-2 left-1/2 -translate-x-1/2 text-black font-bold text-xs md:text-lg">Réception</h3>
+        </div>
+        <div class="relative [grid-area:personnel]">
+            <div class="room flex flex-wrap justify-center items-center gap-1 p-3 w-full h-full empty:bg-green-300 empty:opacity-50"></div>
+            <button class="add-room-btn absolute left-1/2 top-[85%] -translate-1/2 bg-blue-600 md:w-6 md:h-6 w-4 h-4 text-sm flex justify-center items-center transition-all Duration-500 rounded-3xl text-white md:text-lg cursor-pointer hover:scale-105" room-name="personnel">+</button>
+            <h3 class="absolute top-1 left-1/2 -translate-x-1/2 text-black font-bold text-xs md:text-lg md:top-2">personnel</h3>
+        </div>
+        <div class="relative [grid-area:archive]">
+            <div class="room flex flex-wrap justify-center items-center gap-1 p-3 w-full h-full empty:bg-red-400 empty:opacity-50"></div>
+            <button class="add-room-btn absolute left-1/2 top-[85%] -translate-1/2 bg-blue-600 md:w-6 md:h-6 w-4 h-4 text-sm flex justify-center items-center transition-all Duration-500 rounded-3xl text-white md:text-lg cursor-pointer hover:scale-105" room-name="archive" >+</button>
+            <h3 class="absolute top-2 left-1/2 -translate-x-1/2 text-black font-bold text-xs md:text-lg">archive</h3>
+        </div>
+    </main>
+   <div id="addForum" class="modal w-full z-50 h-screen fixed top-0 left-0 backdrop-blur-[2px] flex justify-center items-center p-4 hidden">
+    <form action="" class="relative w-full max-w-116 max-h-80 md:max-h-128 bg-white rounded-xl shadow-md p-4 flex flex-col items-center gap-2 overflow-y-auto">
+        <button class="close-Modal-btn absolute top-2 right-4 text-3xl cursor-pointer">&times;</button>
+        <h2 class="text-green-500 font-bold text-3xl">Add Worker</h2>
+        <div class="flex flex-col w-full gap-1">
+            <label for="fullname">FullName:</label>
+            <input type="text" name="fullname" id="fullname" placeholder="Enter Your FullName" class="p-2 bg-gray-200 rounded border border-gray-300" required>
+        </div>
+        <div class="flex flex-col w-full gap-1">
+            <label for="Role">Role:</label>
+            <select name="Role" id="Role" class="w-full p-2 bg-gray-200">
+                <option value="Manager">Manager</option>
+                <option value="Réceptionnistes">Réceptionnistes</option>
+                <option value="Techniciens IT">Techniciens IT</option>
+                <option value="Agents de sécurité">Agents de sécurité</option>
+                <option value="Nettoyage">Nettoyage</option>
+                <option value="Autres rôles">Autres rôles</option>
+            </select>
+        </div>
+        <div class="flex flex-col w-full gap-1">
+            <label for="img-url">Profile Photo:</label>
+            <input type="text" name="photo" id="img-url" placeholder="https://www.exemple.com/photo.png" class="p-2 bg-gray-200 rounded border border-gray-300">
+            <img id="previewimg" src="" alt="Profil Picture" class="w-16 h-16 rounded-full" onerror="this.onerror=null; this.src='img/Profil.jpg'">
+        </div>
+        <div class="flex flex-col w-full gap-1">
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" placeholder="Enter Email" class="p-2 bg-gray-200 rounded border border-gray-300" required>
+        </div>
+        <div class="flex flex-col w-full gap-1">
+            <label for="phone">Phone Number:</label>
+            <input type="tel" name="phone" id="phone" placeholder="Enter Phone" class="p-2 bg-gray-200 rounded border border-gray-300" required>
+        </div>
+        <div class="flex flex-col w-full gap-1">
+            <label>Experiences:</label>
+            <div class="exp-container w-full bg-gray-200 p-2 flex flex-col gap-2">
+                <div class="exp-item">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold">Expérience 1</h4>
+                        <button class="remove-exp-btn text-lg cursor-pointer text-red-500 hover:text-red-700 hidden" type="button">&times;</button>
+                    </div>
+                    <input type="text" name="exp-title" placeholder="Poste" class="exp-title w-full p-2 bg-white rounded border border-gray-300" required>
+                    <input type="text" name="exp-company" placeholder="Entreprise" class="exp-company w-full p-2 bg-white rounded border border-gray-300" required>
+                    <div class="flex gap-2">
+                        <input type="date" name="exp-start" class="exp-start p-2 bg-white rounded border border-gray-300 flex-1" required>
+                        <input type="date" name="exp-end" class="exp-end p-2 bg-white rounded border border-gray-300 flex-1" required>
+                    </div>
                 </div>
             </div>
+            <button type="button" id="add-exp-btn" class="w-fit bg-gray-200 border border-gray-400 p-2 cursor-pointer rounded">Add Experience</button>
         </div>
+        <input type="submit" class="bg-green-400 p-2 w-full rounded border-gray-300 cursor-pointer transition-all Duration-1000 hover:scale-95">
+        <input type="reset" class="bg-gray-200 p-2 w-full rounded border-gray-300 cursor-pointer transition-all Duration-1000 hover:scale-95">
+    </form>
+</div>
 
-        <!-- Main Zones -->
-        <div class="container" id="container">
-            <!-- Conference -->
-            <div class="conference">
-                <h1>SALLE DE CONFERENCE</h1>
-                <button type="button" class="plusbtn" data-zone="conference">+</button>
-                <div class="conferencelist" id="conferencelist"></div>
-            </div>
-
-            <div class="vertcolouar"></div>
-            <div class="horizcolouar"></div>
-
-            <!-- Reception -->
-            <div class="reception">
-                <h1>SALLE DE RECEPTION</h1>
-                <button type="button" class="plusbtn" data-zone="reception">+</button>
-                <div class="receptionlist" id="receptionlist"></div>
-            </div>
-
-            <!-- Serveurs -->
-            <div class="serveurs" id="serveurs">
-                <h1>SALLE DES SERVEURS</h1>
-                <button type="button" class="plusbtn" data-zone="serveurs">+</button>
-                <div class="serveurslist" id="serveurslist"></div>
-            </div>
-
-            <!-- Securite -->
-            <div class="securite" id="securite">
-                <h1>SALLE DE SECURITE</h1>
-                <button type="button" class="plusbtn" data-zone="securite">+</button>
-                <div class="securitelist" id="securitelist"></div>
-            </div>
-
-            <!-- Personnel -->
-            <div class="personnel" id="personnel">
-                <h1>SALLE DES PERSONNEL</h1>
-                <button type="button" class="plusbtn" data-zone="personnel">+</button>
-                <div class="personnellist" id="personnellist"></div>
-            </div>
-
-            <!-- Archives -->
-            <div class="archives">
-                <h1>SALLE D'ARCHIVES</h1>
-                <button type="button" class="plusbtn" data-zone="archives">+</button>
-                <div class="archiveslist" id="archiveslist"></div>
-            </div>
+   <div id="details-model" class="modal z-40 w-full h-screen fixed top-0 left-0 backdrop-blur-[2px] flex justify-center items-center p-4 hidden">
+    <div class="inforamtion relative w-full max-w-116 bg-white max-h-80 md:max-h-100 rounded-xl shadow-md px-2 py-4 flex flex-col gap-2 overflow-y-auto ">
+        <button class="close-Modal-btn absolute top-2 right-4 text-3xl cursor-pointer">&times;</button>
+        <div class="flex gap-1 md:gap-4">
+        <img src="img/Profil.jpg" alt="Profil Picture" class="w-32 h-32 rounded-full">
+         <div>
+            <h2 class="text-black font-bold text-sm md:text-lg mb-2">Personnel inforamtions</h2>
+            <p>Full Name : <span class="name"></span></p>
+            <p>Email : <span class="email"></span></p>
+            <p>Phone : <span class="phone"></span></p>
+            <p>Role : <span class="role"></span></p>
+            <p>Actual Place : <span class="Actual-place"></span></p>
+         </div>
         </div>
-    </div>
-
-    <!-- Modal Ajouter Employé -->
-    <div class="validationForm" id="validationForm">
-        <div class="btncancel">
-            <h1>Ajouter un Employé</h1>
-            <button type="button" id="closeModal" >×</button>
+        <div>
+            <h2 class="text-black font-bold text-sm md:text-lg mb-2">Experiences</h2>
+            <div class="Experience w-full min-h-28 bg-gray-200 border border-gray-100 rounded p-4"></div>
         </div>
-        <form class="fromremplit" id="addWorkerForm">
-            <div class="input-group1">
-                <img src="" alt="Profile" class="profileimg" id="profileimg">
-                <div style="flex: 1;">
-                    <label for="workerName">Nom et Prénom</label>
-                    <input type="text" id="workerName" placeholder="OUMAIMA EDDAHANI" required>
-                    <p id="errorName" class="text-red-500 text-sm mt-1 hidden"></p>
-                </div>
-            </div>
-
-            <label for="workerPhoto">Photo (URL)</label>
-            <input type="url" id="workerPhoto" placeholder="https://randomuser.me/api/portraits/women/68.jpg">
-            <p id="errorPhoto" class="text-red-500 text-sm mt-1 hidden"></p>
-
-            <div class="input-group2">
-                <label for="workerRole">Rôle</label>
-                <select id="workerRole" required>
-                    <option value="">Sélectionner un rôle</option>
-                    <option value="Réceptionniste">Réceptionniste</option>
-                    <option value="Technicien IT">Technicien IT</option>
-                    <option value="Agent de sécurité">Agent de sécurité</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Nettoyage">Nettoyage</option>
-                    <option value="FS Developer">FS Developer</option>
-                    <option value="Comptable">Comptable</option>
-                    <option value="RH">Ressources Humaines</option>
-                    <option value="Commercial">Commercial</option>
-                </select>
-            </div>
-
-            <label for="workerEmail">Email</label>
-            <input type="email" id="workerEmail" placeholder="oumaimaeddahani@gmail.com" required>
-            <p id="errorEmail" class="text-red-500 text-sm mt-1 hidden"></p>
-
-            <label for="workerPhone">Téléphone</label>
-            <input type="tel" id="workerPhone" placeholder="+22698464599" required>
-            <p id="errorPhone" class="text-red-500 text-sm mt-1 hidden"></p>
-
-            <div class="experiences-section">
-                <div class="experiences-header">
-                    <h3>Expériences</h3>
-                    <button type="button" class="add-experience-btn" id="addExperienceBtn">+ Ajouter</button>
-                </div>
-                <div id="experiencesList"></div>
-            </div>
-
-            <button type="submit">Envoyer</button>
-        </form>
-    </div>
-
-    <!-- Profil Employé -->
-    <div class="profile-modal" id="profileModal">
-        <div class="btncancel">
-            <h1>Profil Employé</h1>
-            <button type="button" id="closeProfileModal">×</button>
+        <div class="flex gap-1 w-full justify-end">
+        <button class="Delete-btn bg-red-400 p-2 rounded  cursor-pointer transition-all Duration-500 hover:scale-95"><i class="fa-regular fa-trash-can"></i> Delete</button>
         </div>
-        <div class="profile-header" id="profileContent"></div>
-    </div>
-
-    <!-- Sélecteur de zone -->
-    <div class="validationForm" id="zoneSelectorModal">
-        <div class="btncancel">
-            <h1 id="zoneSelectorTitle">Sélectionner un employé</h1>
-            <button type="button" id="closeZoneSelector">×</button>
-        </div>
-        <div id="zoneSelectorList" style="width: 100%; max-height: 400px; overflow-y: auto;"></div>
-    </div>
-
+   </div>
+   </div>
+   <div id="add-modal" class="modal w-full h-screen fixed top-0 left-0 backdrop-blur-[2px] flex justify-center items-center p-4 hidden">
+     <div class="relative w-full max-w-116 bg-white max-h-80 md:max-h-100 rounded-xl shadow-md px-2 py-4 flex flex-col items-center gap-2 overflow-y-auto ">
+        <button class="close-Modal-btn absolute top-2 right-4 text-3xl cursor-pointer">&times;</button>
+        <h3 class="text-2xl text-green-500">Select Worker to assign</h3>
+        <div class="assign flex flex-col gap-2"></div>
+     </div>
+   </div>
     <script src="script.js"></script>
 </body>
 </html>
