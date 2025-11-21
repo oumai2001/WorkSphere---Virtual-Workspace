@@ -1,747 +1,286 @@
-//  CONFIG
-const ZONE_CONFIG = {
-    conference: { name: 'Salle de conférence', limit: 10, required: false },
-    reception: { name: 'Réception', limit: 2, required: true },
-    serveurs: { name: 'Salle des serveurs', limit: 3, required: true },
-    securite: { name: 'Salle de sécurité', limit: 2, required: true },
-    personnel: { name: 'Salle du personnel', limit: 15, required: false },
-    archives: { name: "Salle d'archives", limit: 2, required: true }
+// SELECTORS
+const modals = document.querySelectorAll('.modal');
+const addBtn = document.getElementById('add-worker-btn');
+const closemodal = document.querySelectorAll('.close-Modal-btn');
+const addForum = document.getElementById('addForum');
+const detailsmodal = document.getElementById('details-model');
+const workerForm = addForum.querySelector('form');
+const unassignedList = document.getElementById('unassigned-list');
+const rooms = document.querySelectorAll('.room');
+const countSpan = document.getElementById('unassigned-count');
+const expContainer = document.querySelector('.exp-container');
+const expItem = document.querySelector('.exp-item');
+const addExpBtn = document.getElementById('add-exp-btn');
+const previewimg = document.getElementById('previewimg');
+const imgUrl = document.getElementById('img-url');
+const assigncontainer = document.querySelector('.assign');
+const addroombtn = document.querySelectorAll('.add-room-btn');
+const addmodal = document.getElementById('add-modal');
+const search = document.getElementById('Search');
+const filterRole = document.getElementById('filterRole');
+
+//ZONE PERMISSIONS & LIMITS
+const zonePermissions = {
+    "conference": ["Manager","Réceptionnistes","Techniciens IT","Agents de sécurité","Nettoyage","Autres rôles"],
+    "personnel": ["Manager","Réceptionnistes","Techniciens IT","Agents de sécurité","Nettoyage","Autres rôles"],
+    "servers": ["Techniciens IT","Manager","Nettoyage"],
+    "security": ["Agents de sécurité","Manager","Nettoyage"],
+    "Réception": ["Réceptionnistes","Manager","Nettoyage","Autres rôles"],
+    "archive": ["Manager","Réceptionnistes","Techniciens IT","Agents de sécurité"]
+};
+const zonelimit = {
+    "conference": 6,
+    "personnel": 3,
+    "servers": 3,
+    "security": 3,
+    "Réception": 10,
+    "archive": 2
 };
 
-const ROLE_RESTRICTIONS = {
-    'Réceptionniste': ['reception'],
-    'Technicien IT': ['serveurs'],
-    'Agent de sécurité': ['securite'],
-    'Manager': ['conference', 'reception', 'serveurs', 'securite', 'personnel', 'archives'],
-    'Nettoyage': ['conference', 'reception', 'serveurs', 'securite', 'personnel'],
-    'FS Developer': ['conference', 'reception', 'serveurs', 'securite', 'personnel', 'archives'],
-    'Comptable': ['conference', 'reception', 'serveurs', 'securite', 'personnel', 'archives'],
-    'RH': ['conference', 'reception', 'serveurs', 'securite', 'personnel', 'archives'],
-    'Commercial': ['conference', 'reception', 'serveurs', 'securite', 'personnel', 'archives']
-};
+//LOAD DATA
+let workersData = JSON.parse(localStorage.getItem('workSphereData')) || { nextWorkerId:1, workers:[] };
+DisplayStaff(workersData.workers);
 
-//  ETAT 
-let workers = [];
-let nextWorkerId = 1;
-let draggedWorker = null;
+//FUNCTIONS
 
-// INIT 
-document.addEventListener('DOMContentLoaded', () => {
-    loadFromStorage();
-    initializeEventListeners();
-    renderAll();
-    updateRequiredZones();
+// Display staff in sidebar
+function DisplayStaff(workersArray){
+    unassignedList.innerHTML = '';
+    const unassigned = workersArray.filter(staff => !staff.zone);
+    unassigned.forEach(staff=>{
+        const stafItem = document.createElement('div');
+        stafItem.addEventListener('click',()=>{ detailsmodal.classList.remove('hidden'); showData(staff); });
+        stafItem.classList.add('Member','w-full','shadow-md','rounded-lg','flex','justify-between','bg-gray-200');
+        stafItem.innerHTML = `
+            <div class="flex">
+                <img src="${staff.photo||'img/Profil.jpg'}" class="rounded-full w-8 h-8 m-2 md:m-3 md:w-14 md:h-14 object-cover">
+                <h3 class="font-bold text-xs md:text-lg mt-1 md:mt-3 md:ml-4">${staff.name} <br> 
+                    <span class="md:text-[.8rem] text-gray-400">${staff.role}</span>
+                </h3>
+            </div>`;
+        unassignedList.appendChild(stafItem);
+    });
+    countSpan.textContent = unassigned.length;
+}
+
+// Show details modal
+function showData(staff){
+    const img = detailsmodal.querySelector('img');
+    const name = detailsmodal.querySelector('.name');
+    const email = detailsmodal.querySelector('.email');
+    const role = detailsmodal.querySelector('.role');
+    const phone = detailsmodal.querySelector('.phone');
+    const place = detailsmodal.querySelector('.Actual-place');
+    const Experience = detailsmodal.querySelector('.Experience');
+    const deleteBtn = detailsmodal.querySelector('.Delete-btn');
+    const editbtn = detailsmodal.querySelector('.Edit-btn');
+
+    Experience.innerHTML = '';
+    name.textContent = staff.name;
+    email.textContent = staff.email;
+    role.textContent = staff.role;
+    phone.textContent = staff.phone;
+    place.textContent = staff.zone || 'Non assigné';
+    img.src = staff.photo || 'img/Profil.jpg';
+
+    staff.experiences.forEach(exp=>{
+        Experience.innerHTML += `<div>
+            <p>Title: <span>${exp.title}</span></p>
+            <p>Company: <span>${exp.company}</span></p>
+            <p>Start date: <span>${exp.startDate}</span></p>
+            <p>End date: <span>${exp.endDate}</span></p><br>
+        </div>`;
+    });
+
+    deleteBtn.onclick = ()=>deletestaff(staff);
+    editbtn.onclick = ()=>editstaff(staff);
+}
+
+// Validate form
+function validateForm(formData){
+    const nameRegex = /^[a-zA-ZÀ-ÿ\s'-]{2,50}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[0-9]{10}$/;
+
+    if(!nameRegex.test(formData.name)){ alert('Nom invalide'); return false; }
+    if(!emailRegex.test(formData.email)){ alert('Email invalide'); return false; }
+    if(!phoneRegex.test(formData.phone)){ alert('Numéro invalide'); return false; }
+
+    for(let exp of formData.experiences){
+        if(new Date(exp.startDate) >= new Date(exp.endDate)){
+            alert('Date de début doit être antérieure à la date de fin');
+            return false;
+        }
+    }
+    return true;
+}
+
+// Add experience field
+addExpBtn.addEventListener('click',()=>{
+    const cloneExp = expItem.cloneNode(true);
+    cloneExp.querySelectorAll('input').forEach(input=>input.value='');
+    const count = expContainer.querySelectorAll('.exp-item').length +1;
+    cloneExp.querySelector('h4').textContent = `Expérience ${count}`;
+    cloneExp.querySelector('.remove-exp-btn').classList.remove('hidden');
+    cloneExp.querySelector('.remove-exp-btn').onclick = ()=>cloneExp.remove();
+    expContainer.appendChild(cloneExp);
 });
 
-// STORAGE 
-function saveToStorage() {
-    localStorage.setItem('workSphereData', JSON.stringify({
-        workers: workers,
-        nextWorkerId: nextWorkerId
-    }));
-}
-
-function loadFromStorage() {
-    const saved = localStorage.getItem('workSphereData');
-    if (saved) {
-        try {
-            const data = JSON.parse(saved);
-            workers = Array.isArray(data.workers) ? data.workers : [];
-            nextWorkerId = typeof data.nextWorkerId === 'number' ? data.nextWorkerId : 1;
-        } catch (err) {
-            console.warn('Erreur parse storage, reset.', err);
-            workers = [];
-            nextWorkerId = 1;
-        }
-    }
-}
-
-// EVENTS 
-function initializeEventListeners() {
-    const addBtn = document.getElementById('validation');
-    if (addBtn) addBtn.addEventListener('click', openAddModal);
-
-    const closeModalBtn = document.getElementById('closeModal');
-    if (closeModalBtn) closeModalBtn.addEventListener('click', closeAddModal);
-
-    const closeProfileBtn = document.getElementById('closeProfileModal');
-    if (closeProfileBtn) closeProfileBtn.addEventListener('click', closeProfileModal);
-
-    const closeZoneSelectorBtn = document.getElementById('closeZoneSelector');
-    if (closeZoneSelectorBtn) closeZoneSelectorBtn.addEventListener('click', closeZoneSelector);
-
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) {
-        overlay.addEventListener('click', () => {
-            closeAddModal();
-            closeProfileModal();
-            closeZoneSelector();
-        });
-    }
-
-    const addForm = document.getElementById('addWorkerForm');
-    if (addForm) addForm.addEventListener('submit', handleAddWorker);
-
-    const photoInput = document.getElementById('workerPhoto');
-    if (photoInput) photoInput.addEventListener('input', updatePhotoPreview);
-
-    const addExpBtn = document.getElementById('addExperienceBtn');
-    if (addExpBtn) addExpBtn.addEventListener('click', addExperienceField);
-
-    document.querySelectorAll('.plusbtn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const zone = e.currentTarget.dataset.zone;
-            openZoneSelector(zone);
-        });
-    });
-
-    const nameInput = document.getElementById('workerName');
-    if (nameInput) nameInput.addEventListener('input', () => {
-        const v = nameInput.value.trim();
-        showError('workerName', 'errorName', validateName(v) ? '' : 'Nom invalide (min 3 lettres).');
-    });
-
-    const emailInput = document.getElementById('workerEmail');
-    if (emailInput) emailInput.addEventListener('input', () => {
-        const v = emailInput.value.trim();
-        showError('workerEmail', 'errorEmail', validateEmail(v) ? '' : 'Email invalide.');
-    });
-
-    const phoneInput = document.getElementById('workerPhone');
-    if (phoneInput) phoneInput.addEventListener('input', () => {
-        const v = phoneInput.value.trim();
-        showError('workerPhone', 'errorPhone', validatePhone(v) ? '' : 'Téléphone invalide.');
-    });
-
-    if (photoInput) photoInput.addEventListener('input', () => {
-        const v = photoInput.value.trim();
-        showError('workerPhoto', 'errorPhoto', validatePhoto(v) ? '' : 'URL d\'image invalide.');
-    });
-}
-
-//MODALS 
-function openAddModal() {
-    const modal = document.getElementById('validationForm');
-    if (modal) modal.classList.add('active');
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) overlay.classList.add('active');
-
-    const form = document.getElementById('addWorkerForm');
-    if (form) form.reset();
-
-    const expList = document.getElementById('experiencesList');
-    if (expList) expList.innerHTML = '';
-    const img = document.getElementById('profileimg');
-    if (img) {
-        img.src = '';
-        img.classList.remove('active');
-    }
-
-    ['errorName','errorEmail','errorPhone','errorPhoto'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.textContent = ''; el.classList.add('hidden'); }
-    });
-}
-
-function closeAddModal() {
-    const modal = document.getElementById('validationForm');
-    if (modal) modal.classList.remove('active');
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) overlay.classList.remove('active');
-}
-
-function showWorkerProfile(workerId) {
-    const worker = workers.find(w => w.id === workerId);
-    if (!worker) return;
-
-    const zoneName = worker.zone ? ZONE_CONFIG[worker.zone].name : 'Non assigné';
-    let experiencesHtml = '';
-    
-    if (worker.experiences && worker.experiences.length > 0) {
-        experiencesHtml = worker.experiences.map(exp => {
-            const period = exp.start ? (exp.end ? `${exp.start} — ${exp.end}` : `${exp.start} — Present`) : '';
-            return `
-                <div class="experience-item-profile">
-                    <strong>${escapeHtml(exp.position)}</strong>
-                    <span class="experience-period">${period}</span>
-                </div>
-            `;
-        }).join('');
-    } else {
-        experiencesHtml = '<p class="no-experience">Aucune expérience</p>';
-    }
-
-    const photoHtml = worker.photo
-        ? `<img src="${escapeHtml(worker.photo)}" alt="${escapeHtml(worker.name)}" class="profile-photo" onerror="handleProfileImageError(this)">`
-        : `<div class="profile-photo profile-photo-default">👤</div>`;
-
-    document.getElementById('profileContent').innerHTML = `
-        <div class="profile-header-top">
-            ${photoHtml}
-            <div class="profile-title-section">
-                <div class="profile-name">${escapeHtml(worker.name)}</div>
-                <div class="profile-role">${escapeHtml(worker.role)}</div>
-            </div>
-        </div>
-        <div class="profile-details">
-            <div class="profile-section">
-                <h3 class="section-title">Informations de contact</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-content">
-                            <span class="info-label">Email : </span>
-                            <span class="info-value">${escapeHtml(worker.email)}</span>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-content">
-                            <span class="info-label">Téléphone : </span>
-                            <span class="info-value">${escapeHtml(worker.phone)}</span>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-content">
-                            <span class="info-label">Localisation : </span>
-                            <span class="info-value">${zoneName}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="profile-section">
-                <h3 class="section-title">Expériences professionnelles</h3>
-                <div class="experiences-container">
-                    ${experiencesHtml}
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.getElementById('profileModal').classList.add('active');
-    document.getElementById('modalOverlay').classList.add('active');
-}
-
-function closeProfileModal() {
-    const modal = document.getElementById('profileModal');
-    if (modal) modal.classList.remove('active');
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) overlay.classList.remove('active');
-}
-
-// - PHOTO PREVIEW & ERRORS 
-
-function updatePhotoPreview() {
-    const url = document.getElementById('workerPhoto').value.trim();
-    const img = document.getElementById('profileimg');
-    if (url) {
-        img.src = url;
-        img.classList.add('active');
-        img.onerror = () => img.classList.remove('active');
-    } else {
-        img.classList.remove('active');
-    }
-}
-
-function handleImageError(img) {
-    img.src = '';
-    img.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    img.style.display = 'flex';
-    img.style.alignItems = 'center';
-    img.style.justifyContent = 'center';
-    img.style.fontSize = '24px';
-    img.textContent = '👤';
-}
-
-function handleProfileImageError(img) {
-    img.style.display = 'none';
-    const placeholder = document.createElement('div');
-    placeholder.className = 'profile-photo';
-    placeholder.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    placeholder.style.display = 'flex';
-    placeholder.style.alignItems = 'center';
-    placeholder.style.justifyContent = 'center';
-    placeholder.style.fontSize = '60px';
-    placeholder.textContent = '👤';
-    img.parentNode.insertBefore(placeholder, img);
-}
-
-//EXPERIENCES UI 
-function addExperienceField() {
-    const container = document.getElementById('experiencesList');
-    if (!container) return;
-
-    const div = document.createElement('div');
-    div.className = 'experience-item';
-    div.style.marginBottom = '10px';
-    div.innerHTML = `
-        <input type="text" placeholder="Poste / Entreprise" class="exp-position" required style="width:100%; margin-bottom:6px;" />
-        <div class="exp-dates" style="display:flex; gap:8px; align-items:center;">
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px;">Début</label>
-                <input type="month" class="exp-start" required>
-            </div>
-            <div style="display:flex; flex-direction:column;">
-                <label style="font-size:12px;">Fin (laisser vide = en cours)</label>
-                <input type="month" class="exp-end">
-            </div>
-            <button type="button" class="remove-experience-btn" title="Supprimer" style="height:32px; align-self:flex-end;">×</button>
-        </div>
-        <p class="exp-error text-red-500 text-sm mt-1" style="display:none;"></p>
-    `;
-    const removeBtn = div.querySelector('.remove-experience-btn');
-    removeBtn.addEventListener('click', () => div.remove());
-    container.appendChild(div);
-
-    const startInput = div.querySelector('.exp-start');
-    const endInput = div.querySelector('.exp-end');
-    const errorP = div.querySelector('.exp-error');
-
-    const checkDates = () => {
-        errorP.style.display = 'none';
-        if (startInput.value && endInput.value) {
-            if (!isStartBeforeOrEqualEnd(startInput.value, endInput.value)) {
-                errorP.textContent = 'La date de début doit être antérieure ou égale à la date de fin.';
-                errorP.style.display = 'block';
-            }
-        }
-    };
-
-    startInput.addEventListener('input', checkDates);
-    endInput.addEventListener('input', checkDates);
-}
-
-//  VALIDATIONS 
-function showError(inputId, errorId, message) {
-    const input = document.getElementById(inputId);
-    const error = document.getElementById(errorId);
-
-    if (!input || !error) return;
-
-    if (message) {
-        input.classList.add('border-red-500');
-        input.classList.remove('border-green-500');
-        error.textContent = message;
-        error.classList.remove('hidden');
-    } else {
-        input.classList.remove('border-red-500');
-        input.classList.add('border-green-500');
-        error.textContent = '';
-        error.classList.add('hidden');
-    }
-}
-
-function validateName(name) {
-    const regex = /^[A-Za-zÀ-ÿ\s'-]{3,50}$/;
-    return regex.test(name);
-}
-
-function validateEmail(email) {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-}
-
-function validatePhone(phone) {
-    const regex = /^\+?[0-9]{8,15}$/;
-    return regex.test(phone);
-}
-
-function validatePhoto(url) {
-    if (!url) return true;
-    const regex = /^(https?:\/\/.*\.(jpg|jpeg|png|gif|webp))$/i;
-    return regex.test(url);
-}
-
-function isStartBeforeOrEqualEnd(startValue, endValue) {
-    if (!startValue) return false;
-    if (!endValue) return true; 
-
-    const sParts = startValue.split('-').map(Number);
-    const eParts = endValue.split('-').map(Number);
-
-    const sY = sParts[0], sM = sParts[1] || 1, sD = sParts[2] || 1;
-    const eY = eParts[0], eM = eParts[1] || 1, eD = eParts[2] || 1;
-
-    if ([sY,sM,eY,eM].some(n => isNaN(n))) return false;
-
-    if (sY < eY) return true;
-    if (sY > eY) return false;
-    if (sM < eM) return true;
-    if (sM > eM) return false;
-    return sD <= eD;
-}
-
-//  HANDLE ADD WORKER (MAIN) 
-function handleAddWorker(e) {
+// Add / Delete worker
+workerForm.addEventListener('submit', e=>{
     e.preventDefault();
 
-    const name = document.getElementById('workerName').value.trim();
-    const role = document.getElementById('workerRole').value;
-    const photo = document.getElementById('workerPhoto').value.trim();
-    const email = document.getElementById('workerEmail').value.trim();
-    const phone = document.getElementById('workerPhone').value.trim();
-
-    let isValid = true;
-
-    if (!validateName(name)) {
-        showError('workerName','errorName','Nom invalide (lettres seulement, min 3 caractères).');
-        isValid = false;
-    } else showError('workerName','errorName','');
-
-    if (!validateEmail(email)) {
-        showError('workerEmail','errorEmail','Email invalide.');
-        isValid = false;
-    } else showError('workerEmail','errorEmail','');
-
-    if (!validatePhone(phone)) {
-        showError('workerPhone','errorPhone','Téléphone invalide (8 à 15 chiffres).');
-        isValid = false;
-    } else showError('workerPhone','errorPhone','');
-
-    if (!validatePhoto(photo)) {
-        showError('workerPhoto','errorPhoto','URL d\'image invalide (jpg|png|gif|webp...).');
-        isValid = false;
-    } else showError('workerPhoto','errorPhoto','');
-
-    if (!role) {
-        alert('Veuillez choisir un rôle.');
-        isValid = false;
-    }
-
-    if (!isValid) return;
-
-    const expNodes = Array.from(document.querySelectorAll('.experience-item'));
     const experiences = [];
-    let experiencesAreValid = true;
-
-    for (const item of expNodes) {
-        const positionInput = item.querySelector('.exp-position');
-        const startInput = item.querySelector('.exp-start');
-        const endInput = item.querySelector('.exp-end');
-        const errorP = item.querySelector('.exp-error');
-
-        if (errorP) { errorP.style.display = 'none'; errorP.textContent = ''; }
-
-        const position = positionInput ? positionInput.value.trim() : '';
-        const startVal = startInput ? startInput.value.trim() : '';
-        const endVal = endInput ? endInput.value.trim() : '';
-
-        if (!position) {
-            if (errorP) { errorP.textContent = 'Le poste est requis.'; errorP.style.display = 'block'; }
-            experiencesAreValid = false;
-            continue;
-        }
-        if (!startVal) {
-            if (errorP) { errorP.textContent = 'La date de début est requise.'; errorP.style.display = 'block'; }
-            experiencesAreValid = false;
-            continue;
-        }
-
-        if (!isStartBeforeOrEqualEnd(startVal, endVal)) {
-            if (errorP) { errorP.textContent = 'La date de début doit être antérieure ou égale à la date de fin.'; errorP.style.display = 'block'; }
-            experiencesAreValid = false;
-            continue;
-        }
-
+    expContainer.querySelectorAll('.exp-item').forEach(item=>{
         experiences.push({
-            position: position,
-            start: startVal,
-            end: endVal || null
+            title: item.querySelector('.exp-title').value,
+            company: item.querySelector('.exp-company').value,
+            startDate: item.querySelector('.exp-start').value,
+            endDate: item.querySelector('.exp-end').value
         });
-    }
+    });
 
-    if (!experiencesAreValid) {
-        const expSection = document.getElementById('experiencesList');
-        if (expSection) expSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-    }
-
-    // Create worker object and save
     const worker = {
-        id: nextWorkerId++,
-        name,
-        role,
-        photo: photo || '',
-        email,
-        phone,
-        experiences,
+        id: workersData.nextWorkerId,
+        name: workerForm.querySelector('input[type="text"]').value,
+        role: workerForm.querySelector('#Role').value,
+        photo: imgUrl.value || 'img/Profil.jpg',
+        email: workerForm.querySelector('input[type="email"]').value,
+        phone: workerForm.querySelector('input[type="tel"]').value,
+        experiences: experiences,
         zone: null
     };
 
-    workers.push(worker);
-    saveToStorage();
-    renderAll();
-    updateRequiredZones();
-    closeAddModal();
-}
+    if(!validateForm(worker)) return;
 
-// ZONE / ASSIGN 
-function canAssignToZone(worker, zone) {
-    const allowed = ROLE_RESTRICTIONS[worker.role] || [];
-    return allowed.includes(zone);
-}
+    workersData.workers.push(worker);
+    workersData.nextWorkerId++;
 
-function getEligibleWorkers(zone) {
-    return workers.filter(w => !w.zone && canAssignToZone(w, zone));
-}
+    addForum.classList.add('hidden');
+    workerForm.reset();
+    localStorage.setItem('workSphereData',JSON.stringify(workersData));
+    DisplayStaff(workersData.workers);
+});
 
-function openZoneSelector(zone) {
-    const eligibleWorkers = getEligibleWorkers(zone);
-    const zoneData = ZONE_CONFIG[zone];
-    const currentCount = workers.filter(w => w.zone === zone).length;
-
-    if (currentCount >= zoneData.limit) {
-        alert(`La limite de ${zoneData.limit} employés est atteinte pour cette zone.`);
-        return;
+// Delete staff
+function deletestaff(staff){
+    if(confirm('Voulez-vous supprimer ce membre ?')){
+        workersData.workers = workersData.workers.filter(w=>w.id !== staff.id);
+        localStorage.setItem('workSphereData',JSON.stringify(workersData));
+        DisplayStaff(workersData.workers);
+        detailsmodal.classList.add('hidden');
     }
-    if (eligibleWorkers.length === 0) {
-        alert('Aucun employé disponible pour cette zone.');
-        return;
-    }
-
-    document.getElementById('zoneSelectorTitle').textContent = `Sélectionner un employé - ${zoneData.name}`;
-    const listContainer = document.getElementById('zoneSelectorList');
-    listContainer.innerHTML = eligibleWorkers.map(worker => `
-        <div class="pronalinfo" style="cursor:pointer; margin-bottom:10px;" onclick="selectWorkerForZone(${worker.id}, '${zone}')">
-            <img src="${escapeHtml(worker.photo || '')}" alt="${escapeHtml(worker.name)}" onerror="handleImageError(this)">
-            <div class="info"><h1>${escapeHtml(worker.name)}</h1><p>${escapeHtml(worker.role)}</p></div>
-        </div>
-    `).join('');
-
-    document.getElementById('zoneSelectorModal').classList.add('active');
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) overlay.classList.add('active');
 }
 
-function selectWorkerForZone(workerId, zone) {
-    assignWorkerToZone(workerId, zone);
-    closeZoneSelector();
-}
+//  MODALS 
+modals.forEach(mdl=>mdl.addEventListener('click',e=>{
+    if(e.target.classList.contains('modal')) mdl.classList.add('hidden');
+}));
+closemodal.forEach(close=>close.addEventListener('click',()=>{ close.closest('.modal').classList.add('hidden'); }));
+addBtn.addEventListener('click',()=>addForum.classList.remove('hidden'));
+imgUrl.addEventListener('change', e=> previewimg.src = e.target.value || 'img/Profil.jpg');
 
-function closeZoneSelector() {
-    document.getElementById('zoneSelectorModal').classList.remove('active');
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) overlay.classList.remove('active');
-}
+//SEARCH & FILTER 
+search.addEventListener('keyup', e=>{
+    const val = search.value.toUpperCase();
+    const filtered = workersData.workers.filter(w=>w.name.toUpperCase().includes(val));
+    DisplayStaff(filtered);
+});
+filterRole.addEventListener('change', e=>{
+    const val = filterRole.value;
+    if(!val) DisplayStaff(workersData.workers);
+    else DisplayStaff(workersData.workers.filter(w=>w.role === val));
+});
 
-function assignWorkerToZone(workerId, zone) {
-    const worker = workers.find(w => w.id === workerId);
-    if (!worker) return;
-
-    const zoneData = ZONE_CONFIG[zone];
-    const currentCount = workers.filter(w => w.zone === zone).length;
-
-    if (currentCount >= zoneData.limit) {
-        alert(`La limite de ${zoneData.limit} employés est atteinte.`);
-        return;
-    }
-    if (!canAssignToZone(worker, zone)) {
-        alert(`${worker.name} ne peut pas être assigné à cette zone.`);
-        return;
-    }
-
-    worker.zone = zone;
-    saveToStorage();
-    renderAll();
-    updateRequiredZones();
-}
-
-function removeWorkerFromZone(workerId) {
-    const worker = workers.find(w => w.id === workerId);
-    if (!worker) return;
-    worker.zone = null;
-    saveToStorage();
-    renderAll();
-    updateRequiredZones();
-}
-
-//  RENDER 
-function renderAll() {
-    renderUnassignedWorkers();
-    renderZoneWorkers();
-    updateZoneButtons();
-    updateZoneCounters();
-    initializeDragAndDrop(); 
-}
-
-function renderUnassignedWorkers() {
-    const container = document.getElementById('persolist');
-    const unassigned = workers.filter(w => !w.zone);
-
-    if (unassigned.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👤</div><p>Aucun personnel non assigné</p></div>';
-        return;
-    }
-
-    container.innerHTML = unassigned.map(worker => {
-        const photoHtml = worker.photo 
-            ? `<img src="${escapeHtml(worker.photo)}" alt="${escapeHtml(worker.name)}" class="worker-photo-sidebar" onerror="this.outerHTML='<div class=\\'default-avatar-sidebar\\'>👤</div>';">`
-            : `<div class="default-avatar-sidebar">👤</div>`;
-        
-        return `
-            <div class="pronalinfo" data-worker-id="${worker.id}" onclick="showWorkerProfile(${worker.id})">
-                ${photoHtml}
-                <div class="info"><h1>${escapeHtml(worker.name)}</h1><p>${escapeHtml(worker.role)}</p></div>
-            </div>
-        `;
-    }).join('');
-}
-
-function renderZoneWorkers() {
-    ['conference', 'reception', 'serveurs', 'securite', 'personnel', 'archives'].forEach(zone => {
-        const container = document.getElementById(`${zone}list`);
-        const zoneWorkers = workers.filter(w => w.zone === zone);
-        container.innerHTML = zoneWorkers.map(worker => {
-            const photoHtml = worker.photo 
-                ? `<img src="${escapeHtml(worker.photo)}" alt="${escapeHtml(worker.name)}" class="worker-photo" onerror="this.outerHTML='<div class=\\'default-avatar\\'>👤</div>';">`
-                : `<div class="default-avatar">👤</div>`;
-            
-            return `
-                <div class="pronalinfor" data-worker-id="${worker.id}" onclick="showWorkerProfile(${worker.id})">
-                    <button class="remove-from-zone" onclick="event.stopPropagation(); removeWorkerFromZone(${worker.id})" title="Retirer">×</button>
-                    ${photoHtml}
-                    <div class="info"><h1>${escapeHtml(worker.name)}</h1><p>${escapeHtml(worker.role)}</p></div>
-                </div>
-            `;
-        }).join('');
+//ROOM ASSIGNMENT
+addroombtn.forEach(btn=>{
+    btn.addEventListener('click', e=>{
+        const roomName = btn.getAttribute('room-name');
+        const room = btn.parentElement.querySelector('.room');
+        addmodal.classList.remove('hidden');
+        showWorker(roomName,room);
     });
-}
-function updateZoneButtons() {
-    Object.keys(ZONE_CONFIG).forEach(zone => {
-        const btn = document.querySelector(`.plusbtn[data-zone="${zone}"]`);
-        if (!btn) return;
-        const zoneData = ZONE_CONFIG[zone];
-        const currentCount = workers.filter(w => w.zone === zone).length;
-        const eligibleCount = getEligibleWorkers(zone).length;
+});
 
-        if (currentCount >= zoneData.limit || eligibleCount === 0) btn.classList.add('disabled');
-        else btn.classList.remove('disabled');
+function showWorker(roomName, room){
+    assigncontainer.innerHTML = '';
+    const roomLimit = zonelimit[roomName];
+    if(room.childElementCount >= roomLimit){ alert(`Zone pleine (${roomLimit} max)`); addmodal.classList.add('hidden'); return; }
+
+    const canAssign = workersData.workers.filter(w=> zonePermissions[roomName].includes(w.role) && !w.zone );
+    canAssign.forEach(staff=>{
+        const stafItem = document.createElement('div');
+        stafItem.classList.add('Member','shadow-md','rounded-lg','flex','justify-between','bg-gray-200');
+        stafItem.innerHTML = `
+            <div class="flex">
+                <img src="${staff.photo}" class="rounded-full w-8 h-8 m-2 md:m-3 md:w-14 md:h-14 object-cover">
+                <h3 class="font-bold text-[.8rem] md:text-lg mt-1 md:mt-3 md:ml-4">${staff.name} <br>
+                    <span class="md:text-[.8rem] text-gray-400">${staff.role}</span>
+                </h3>
+            </div>`;
+        assigncontainer.appendChild(stafItem);
+
+        stafItem.addEventListener('click', ()=>{
+            if(room.childElementCount >= roomLimit){ alert(`Zone pleine (${roomLimit} max)`); return; }
+            const roomItem = stafItem.cloneNode(true);
+            roomItem.style.transform = "scale(0.8)";
+            roomItem.innerHTML = `
+                <div class="relative flex flex-col justify-center items-center p-2">
+                    <img src="${staff.photo}" class="rounded-full w-6 h-6 md:w-14 md:h-14 object-cover">
+                    <h3 class="font-bold text-sm text-center">${staff.name.split(' ')[0]} <br>
+                        <span class="md:text-xs text-gray-400">${staff.role}</span>
+                    </h3>
+                    <button class="remove-staff absolute top-0 right-1 cursor-pointer text-red-500 text-lg">&times;</button>
+                </div>`;
+            room.appendChild(roomItem);
+            staff.zone = roomName;
+            localStorage.setItem('workSphereData', JSON.stringify(workersData));
+            DisplayStaff(workersData.workers);
+            addmodal.classList.add('hidden');
+
+            roomItem.querySelector('.remove-staff').addEventListener('click', e=>{
+                e.stopPropagation();
+                roomItem.remove();
+                staff.zone = null;
+                localStorage.setItem('workSphereData', JSON.stringify(workersData));
+                DisplayStaff(workersData.workers);
+            });
+
+            roomItem.addEventListener('click', ()=>{ detailsmodal.classList.remove('hidden'); showData(staff); });
+        });
     });
 }
 
-function updateZoneCounters() {
-    Object.keys(ZONE_CONFIG).forEach(zone => {
-        const zoneElement = document.querySelector(`.${zone}`);
-        if (!zoneElement) return;
-        const currentCount = workers.filter(w => w.zone === zone).length;
-        const zoneData = ZONE_CONFIG[zone];
+//LOAD ASSIGNED WORKERS
+function loadAssignedWorkers(){
+    workersData.workers.forEach(staff=>{
+        if(!staff.zone) return;
+        const roomBtn = document.querySelector(`[room-name="${staff.zone}"]`);
+        if(!roomBtn) return;
+        const room = roomBtn.parentElement.querySelector('.room');
+        const roomItem = document.createElement('div');
+        roomItem.style.transform = "scale(0.8)";
+        roomItem.innerHTML = `
+            <div class="relative flex flex-col justify-center items-center p-2 bg-gray-200 rounded-xl">
+                <img src="${staff.photo}" class="rounded-full w-6 h-6 md:w-14 md:h-14 object-cover">
+                <h3 class="font-bold text-sm text-center">${staff.name.split(' ')[0]} <br>
+                    <span class="md:text-xs text-gray-400">${staff.role}</span>
+                </h3>
+                <button class="remove-staff absolute top-0 right-1 cursor-pointer text-red-500 text-lg">&times;</button>
+            </div>`;
+        room.appendChild(roomItem);
 
-        const old = zoneElement.querySelector('.zone-counter');
-        if (old) old.remove();
+        roomItem.querySelector('.remove-staff').addEventListener('click', e=>{
+            e.stopPropagation();
+            roomItem.remove();
+            staff.zone = null;
+            localStorage.setItem('workSphereData', JSON.stringify(workersData));
+            DisplayStaff(workersData.workers);
+        });
 
-        if (currentCount > 0) {
-            const counter = document.createElement('div');
-            counter.className = 'zone-counter';
-            counter.textContent = `${currentCount}/${zoneData.limit}`;
-            zoneElement.appendChild(counter);
-        }
-
-        if (currentCount >= zoneData.limit) zoneElement.classList.add('zone-limit-reached');
-        else zoneElement.classList.remove('zone-limit-reached');
+        roomItem.addEventListener('click', ()=>{ detailsmodal.classList.remove('hidden'); showData(staff); });
     });
 }
+loadAssignedWorkers();
+localStorage.clear();
 
-function updateRequiredZones() {
-    Object.keys(ZONE_CONFIG).forEach(zone => {
-        const zoneData = ZONE_CONFIG[zone];
-        const zoneElement = document.querySelector(`.${zone}`);
-        if (!zoneElement) return;
-        const currentCount = workers.filter(w => w.zone === zone).length;
-        if (zoneData.required && currentCount === 0) zoneElement.classList.add('empty-required');
-        else zoneElement.classList.remove('empty-required');
-    });
-}
-
-//  DRAG & DROP 
-function initializeDragAndDrop() {
-
-    const zones = ['conference', 'reception', 'serveurs', 'securite', 'personnel', 'archives'];
-
-    zones.forEach(zone => {
-        const zoneElement = document.querySelector(`.${zone}`);
-        if (!zoneElement) return;
-
-        zoneElement.classList.remove('drag-over');
-
-        zoneElement.ondragover = (e) => {
-            e.preventDefault();
-            if (draggedWorker && canAssignToZone(draggedWorker, zone)) {
-                const zoneData = ZONE_CONFIG[zone];
-                const currentCount = workers.filter(w => w.zone === zone).length;
-                if (currentCount < zoneData.limit) zoneElement.classList.add('drag-over');
-            }
-        };
-        zoneElement.ondragleave = (e) => {
-            e.preventDefault();
-            zoneElement.classList.remove('drag-over');
-        };
-        zoneElement.ondrop = (e) => {
-            e.preventDefault();
-            zoneElement.classList.remove('drag-over');
-            if (!draggedWorker) return;
-
-            const zoneData = ZONE_CONFIG[zone];
-            const currentCount = workers.filter(w => w.zone === zone).length;
-            if (currentCount >= zoneData.limit) {
-                alert(`La limite de ${zoneData.limit} employés est atteinte pour cette zone.`);
-                return;
-            }
-            if (!canAssignToZone(draggedWorker, zone)) {
-                alert(`${draggedWorker.name} ne peut pas être assigné à cette zone.`);
-                return;
-            }
-
-            draggedWorker.zone = zone;
-            saveToStorage();
-            renderAll();
-            updateRequiredZones();
-        };
-    });
-
-    const sidebar = document.getElementById('persolist');
-    if (sidebar) {
-        sidebar.ondragover = (e) => { e.preventDefault(); sidebar.style.background = '#f0f8ff'; };
-        sidebar.ondragleave = (e) => { e.preventDefault(); sidebar.style.background = ''; };
-        sidebar.ondrop = (e) => {
-            e.preventDefault();
-            sidebar.style.background = '';
-            if (draggedWorker && draggedWorker.zone) {
-                draggedWorker.zone = null;
-                saveToStorage();
-                renderAll();
-                updateRequiredZones();
-            }
-        };
-    }
-
-    document.querySelectorAll('.pronalinfo, .pronalinfor').forEach(el => {
-        el.setAttribute('draggable', 'true');
-
-        el.ondragstart = (e) => {
-            const workerId = parseInt(e.currentTarget.getAttribute('data-worker-id'));
-            draggedWorker = workers.find(w => w.id === workerId);
-            e.currentTarget.style.opacity = '0.5';
-        };
-
-        el.ondragend = (e) => {
-            e.currentTarget.style.opacity = '1';
-            draggedWorker = null;
-        };
-    });
-}
-
-// HELPERS
-function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return String(unsafe)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-// GLOBALS FOR INLINE HANDLERS 
-window.showWorkerProfile = showWorkerProfile;
-window.removeWorkerFromZone = removeWorkerFromZone;
-window.selectWorkerForZone = selectWorkerForZone;
-window.handleImageError = handleImageError;
-window.handleProfileImageError = handleProfileImageError;
