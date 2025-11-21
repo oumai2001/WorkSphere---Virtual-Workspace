@@ -414,6 +414,79 @@ form input[type="reset"]:hover {
     transform: scale(0.95);
 }
 
+/* DETAILS MODAL */
+.inforamtion {
+    position: relative;
+    width: 100%;
+    max-width: 36rem;
+    background-color: white;
+    max-height: 20rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+}
+
+.inforamtion > div:first-of-type {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.inforamtion > div:first-of-type > img {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.inforamtion h2 {
+    color: black;
+    font-weight: bold;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.inforamtion p {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.Experience {
+    width: 100%;
+    min-height: 7rem;
+    background-color: #e5e7eb;
+    border: 1px solid #f3f4f6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+.exp-detail {
+    margin-bottom: 0.5rem;
+}
+
+.inforamtion > div:last-child {
+    display: flex;
+    gap: 0.25rem;
+    width: 100%;
+    justify-content: flex-end;
+}
+
+.Delete-btn {
+    background-color: #f87171;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.5s;
+    border: none;
+    color: white;
+}
+
+.Delete-btn:hover {
+    transform: scale(0.95);
+}
 
 /* ASSIGN MODAL */
 #add-modal > div {
