@@ -414,6 +414,7 @@ form input[type="reset"]:hover {
     transform: scale(0.95);
 }
 
+
 /* ASSIGN MODAL */
 #add-modal > div {
     position: relative;
