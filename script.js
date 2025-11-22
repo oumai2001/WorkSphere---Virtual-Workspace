@@ -282,5 +282,3 @@ function loadAssignedWorkers(){
     });
 }
 loadAssignedWorkers();
-localStorage.clear();
-
