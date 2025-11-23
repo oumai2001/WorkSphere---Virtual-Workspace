@@ -73,7 +73,6 @@ function showData(staff){
     const place = detailsmodal.querySelector('.Actual-place');
     const Experience = detailsmodal.querySelector('.Experience');
     const deleteBtn = detailsmodal.querySelector('.Delete-btn');
-    const editbtn = detailsmodal.querySelector('.Edit-btn');
 
     Experience.innerHTML = '';
     name.textContent = staff.name;
@@ -93,7 +92,6 @@ function showData(staff){
     });
 
     deleteBtn.onclick = ()=>deletestaff(staff);
-    editbtn.onclick = ()=>editstaff(staff);
 }
 
 // Validate form
@@ -126,7 +124,7 @@ addExpBtn.addEventListener('click',()=>{
     expContainer.appendChild(cloneExp);
 });
 
-// Add / Delete worker
+// Add 
 workerForm.addEventListener('submit', e=>{
     e.preventDefault();
 
@@ -162,16 +160,6 @@ workerForm.addEventListener('submit', e=>{
     DisplayStaff(workersData.workers);
 });
 
-// Delete staff
-function deletestaff(staff){
-    if(confirm('Voulez-vous supprimer ce membre ?')){
-        workersData.workers = workersData.workers.filter(w=>w.id !== staff.id);
-        localStorage.setItem('workSphereData',JSON.stringify(workersData));
-        DisplayStaff(workersData.workers);
-        detailsmodal.classList.add('hidden');
-    }
-}
-
 //  MODALS 
 modals.forEach(mdl=>mdl.addEventListener('click',e=>{
     if(e.target.classList.contains('modal')) mdl.classList.add('hidden');
@@ -180,16 +168,11 @@ closemodal.forEach(close=>close.addEventListener('click',()=>{ close.closest('.m
 addBtn.addEventListener('click',()=>addForum.classList.remove('hidden'));
 imgUrl.addEventListener('change', e=> previewimg.src = e.target.value || 'img/Profil.jpg');
 
-//SEARCH & FILTER 
+//SEARCH  
 search.addEventListener('keyup', e=>{
     const val = search.value.toUpperCase();
     const filtered = workersData.workers.filter(w=>w.name.toUpperCase().includes(val));
     DisplayStaff(filtered);
-});
-filterRole.addEventListener('change', e=>{
-    const val = filterRole.value;
-    if(!val) DisplayStaff(workersData.workers);
-    else DisplayStaff(workersData.workers.filter(w=>w.role === val));
 });
 
 //ROOM ASSIGNMENT
