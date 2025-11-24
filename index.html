@@ -94,74 +94,86 @@
 
    <!--Add Worker Form-->
    <div id="addForum" class="modal w-full z-50 h-screen fixed top-0 left-0 backdrop-blur-[2px] flex justify-center items-center p-4 hidden">
-    <form class="relative w-full max-w-116 max-h-80 md:max-h-128 bg-white rounded-xl shadow-md p-4 flex flex-col items-center gap-2 overflow-y-auto">
+   <form class="relative w-full max-w-116 max-h-80 md:max-h-128 bg-white rounded-xl shadow-md p-4 flex flex-col items-center gap-2 overflow-y-auto">
 
-        <!-- Close button -->
-        <button class="close-Modal-btn absolute top-2 right-4 text-3xl cursor-pointer">&times;</button>
+    <!-- Close button -->
+    <button class="close-Modal-btn absolute top-2 right-4 text-3xl cursor-pointer">&times;</button>
 
-        <h2 class="text-green-500 font-bold text-3xl">Add Worker</h2>
+    <h2 class="text-green-500 font-bold text-3xl">Add Worker</h2>
 
-        <div class="flex flex-col w-full gap-1">
-            <label for="fullname">FullName:</label>
-            <input type="text" id="fullname" placeholder="Enter Your FullName" class="p-2 bg-gray-200 rounded border border-gray-300" required>
-        </div>
+    <div class="flex flex-col w-full gap-1">
+        <label for="fullname">FullName:</label>
+        <input type="text" id="fullname" name="fullname" placeholder="Enter Your FullName"
+            class="p-2 bg-gray-200 rounded border border-gray-300" required>
+    </div>
 
-        <div class="flex flex-col w-full gap-1">
-            <label for="Role">Role:</label>
-            <select id="Role" class="w-full p-2 bg-gray-200">
-                <option value="Manager">Manager</option>
-                <option value="Réceptionnistes">Réceptionnistes</option>
-                <option value="Techniciens IT">Techniciens IT</option>
-                <option value="Agents de sécurité">Agents de sécurité</option>
-                <option value="Nettoyage">Nettoyage</option>
-                <option value="Autres rôles">Autres rôles</option>
-            </select>
-        </div>
+    <div class="flex flex-col w-full gap-1">
+        <label for="Role">Role:</label>
+        <select id="Role" name="role" class="w-full p-2 bg-gray-200">
+            <option value="Manager">Manager</option>
+            <option value="Réceptionnistes">Réceptionnistes</option>
+            <option value="Techniciens IT">Techniciens IT</option>
+            <option value="Agents de sécurité">Agents de sécurité</option>
+            <option value="Nettoyage">Nettoyage</option>
+            <option value="Autres rôles">Autres rôles</option>
+        </select>
+    </div>
 
-        <div class="flex flex-col w-full gap-1">
-            <label for="img-url">Profile Photo:</label>
-            <input type="text" id="img-url" placeholder="https://www.exemple.com/photo.png" class="p-2 bg-gray-200 rounded border border-gray-300">
-            <img id="previewimg" src="" alt="Profil Picture" class="w-16 h-16 rounded-full" onerror="this.onerror=null; this.src='img/Profil.jpg'">
-        </div>
+    <div class="flex flex-col w-full gap-1">
+        <label for="img-url">Profile Photo:</label>
+        <input type="text" id="img-url" name="imgUrl" placeholder="https://www.exemple.com/photo.png"
+            class="p-2 bg-gray-200 rounded border border-gray-300">
+        <img id="previewimg" src="" alt="Profil Picture" class="w-16 h-16 rounded-full"
+            onerror="this.onerror=null; this.src='img/Profil.jpg'">
+    </div>
 
-        <div class="flex flex-col w-full gap-1">
-            <label for="email">Email:</label>
-            <input type="email" id="email" placeholder="Enter Email" class="p-2 bg-gray-200 rounded border border-gray-300" required>
-        </div>
+    <div class="flex flex-col w-full gap-1">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" placeholder="Enter Email"
+            class="p-2 bg-gray-200 rounded border border-gray-300" required>
+    </div>
 
-        <div class="flex flex-col w-full gap-1">
-            <label for="phone">Phone Number:</label>
-            <input type="tel" id="phone" placeholder="Enter Phone" class="p-2 bg-gray-200 rounded border border-gray-300" required>
-        </div>
+    <div class="flex flex-col w-full gap-1">
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" name="phone" placeholder="Enter Phone"
+            class="p-2 bg-gray-200 rounded border border-gray-300" required>
+    </div>
 
-        <!-- Experiences section -->
-        <div class="flex flex-col w-full gap-1">
-            <label>Experiences:</label>
+    <!-- Experiences section -->
+    <div class="flex flex-col w-full gap-1">
+        <label>Experiences:</label>
 
-            <div class="exp-container w-full bg-gray-200 p-2 flex flex-col gap-2">
+        <div class="exp-container w-full bg-gray-200 p-2 flex flex-col gap-2">
 
-                <div class="exp-item">
-                    <div class="flex justify-between items-center">
-                        <h4 class="font-bold">Expérience 1</h4>
-                        <button class="remove-exp-btn text-lg cursor-pointer text-red-500 hover:text-red-700 hidden" type="button">&times;</button>
-                    </div>
-                    <input type="text" placeholder="Poste" class="exp-poste w-full p-2 bg-white rounded border border-gray-300" required>
-                    <input type="text" placeholder="Entreprise" class="exp-entreprise w-full p-2 bg-white rounded border border-gray-300" required>
-                    <div class="flex gap-2">
-                        <input type="date" class="exp-start p-2 bg-white rounded border border-gray-300 flex-1" required>
-                        <input type="date" class="exp-end p-2 bg-white rounded border border-gray-300 flex-1" required>
-                    </div>
+            <div class="exp-item">
+                <div class="flex justify-between items-center">
+                    <h4 class="font-bold">Expérience 1</h4>
+                    <button class="remove-exp-btn text-lg cursor-pointer text-red-500 hover:text-red-700 hidden" type="button">&times;</button>
+                </div>
+
+                <input type="text" placeholder="Poste" name="expPoste[]" class="exp-poste w-full p-2 bg-white rounded border border-gray-300" required>
+
+                <input type="text" placeholder="Entreprise" name="expEntreprise[]" class="exp-entreprise w-full p-2 bg-white rounded border border-gray-300" required>
+
+                <div class="flex gap-2">
+                    <input type="date" name="expStart[]" class="exp-start p-2 bg-white rounded border border-gray-300 flex-1" required>
+
+                    <input type="date" name="expEnd[]" class="exp-end p-2 bg-white rounded border border-gray-300 flex-1" required>
                 </div>
             </div>
-
-            <!-- Add experience button -->
-            <button type="button" id="add-exp-btn" class="w-fit bg-gray-200 border border-gray-400 p-2 cursor-pointer rounded">Add Experience</button>
         </div>
+        <!-- Add experience button -->
+        <button type="button" id="add-exp-btn" class="w-fit bg-gray-200 border border-gray-400 p-2 cursor-pointer rounded">Add Experience</button>
+    </div>
 
-        <!-- Submit & reset buttons -->
-        <input type="submit" class="bg-green-400 p-2 w-full rounded border-gray-300 cursor-pointer transition-all Duration-1000 hover:scale-95">
-        <input type="reset" class="bg-gray-200 p-2 w-full rounded border-gray-300 cursor-pointer transition-all Duration-1000 hover:scale-95">
-    </form>
+    <!-- Submit & reset buttons -->
+    <input type="submit"
+        class="bg-green-400 p-2 w-full rounded border-gray-300 cursor-pointer transition-all Duration-1000 hover:scale-95">
+
+    <input type="reset"
+        class="bg-gray-200 p-2 w-full rounded border-gray-300 cursor-pointer transition-all Duration-1000 hover:scale-95">
+</form>
+
 </div>
 
 
