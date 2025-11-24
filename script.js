@@ -82,17 +82,22 @@ function showData(staff){
     place.textContent = staff.zone || 'Non assigné';
     img.src = staff.photo || 'img/Profil.jpg';
 
-    staff.experiences.forEach(exp=>{
-        Experience.innerHTML += `<div>
-            <p>Poste: <span>${exp.title}</span></p>
-            <p>Entreprise: <span>${exp.entreprise}</span></p>
-            <p>Start date: <span>${exp.startDate}</span></p>
-            <p>End date: <span>${exp.endDate}</span></p><br>
-        </div>`;
-    });
+    if(staff.experiences && staff.experiences.length > 0){
+        staff.experiences.forEach(exp=>{
+            Experience.innerHTML += `<div>
+                <p>Poste: <span>${exp.poste}</span></p>
+                <p>Entreprise: <span>${exp.entreprise}</span></p>
+                <p>Start date: <span>${exp.startDate}</span></p>
+                <p>End date: <span>${exp.endDate}</span></p><br>
+            </div>`;
+        });
+    } else {
+        Experience.innerHTML = '<p class="text-gray-500">Aucune expérience</p>';
+    }
 
     deleteBtn.onclick = ()=>deletestaff(staff);
 }
+
 
 // Validate form
 function validateForm(formData){
@@ -112,7 +117,6 @@ function validateForm(formData){
     }
     return true;
 }
-
 // Add experience field
 addExpBtn.addEventListener('click',()=>{
     const cloneExp = expItem.cloneNode(true);
@@ -140,14 +144,15 @@ workerForm.addEventListener('submit', e=>{
 
     const worker = {
         id: workersData.nextWorkerId,
-        name: workerForm.querySelector('input[type="text"]').value,
+        name: workerForm.querySelector('#fullname').value, 
         role: workerForm.querySelector('#Role').value,
         photo: imgUrl.value || 'img/Profil.jpg',
-        email: workerForm.querySelector('input[type="email"]').value,
-        phone: workerForm.querySelector('input[type="tel"]').value,
+        email: workerForm.querySelector('#email').value, 
+        phone: workerForm.querySelector('#phone').value,  
         experiences: experiences,
         zone: null
     };
+
 
     if(!validateForm(worker)) return;
 
