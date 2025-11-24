@@ -84,8 +84,8 @@ function showData(staff){
 
     staff.experiences.forEach(exp=>{
         Experience.innerHTML += `<div>
-            <p>Title: <span>${exp.title}</span></p>
-            <p>Company: <span>${exp.company}</span></p>
+            <p>Poste: <span>${exp.title}</span></p>
+            <p>Entreprise: <span>${exp.entreprise}</span></p>
             <p>Start date: <span>${exp.startDate}</span></p>
             <p>End date: <span>${exp.endDate}</span></p><br>
         </div>`;
@@ -131,8 +131,8 @@ workerForm.addEventListener('submit', e=>{
     const experiences = [];
     expContainer.querySelectorAll('.exp-item').forEach(item=>{
         experiences.push({
-            title: item.querySelector('.exp-title').value,
-            company: item.querySelector('.exp-company').value,
+            poste: item.querySelector('.exp-poste').value,
+            entreprise: item.querySelector('.exp-entreprise').value,
             startDate: item.querySelector('.exp-start').value,
             endDate: item.querySelector('.exp-end').value
         });
